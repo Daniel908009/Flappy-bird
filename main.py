@@ -1,7 +1,7 @@
 # necessery imports
 import pygame
 import random
-
+import threading
 
 # function to reset the game
 def reset():
@@ -15,6 +15,10 @@ def reset():
     score = 0
     print("Game Reseted!")
 
+# function to check for collision between the bird and the pipes
+def check_collision():
+    while running:
+        print("Checking for collisions")
 
 # variables
 running = True
@@ -39,7 +43,7 @@ bird_x = 50
 bird_y = 300
 bird_y_change = 0
 # setting up the pipe
-pipe = pygame.image.load("assets/pipe.png")
+pipe = pygame.image.load("assets/new_pipe.png")
 pipe_x = []
 for i in range(3):
     pipe_x.append(800 + i * 400)
@@ -60,6 +64,9 @@ text_y = 10
 # setting up the game over
 game_over_font = pygame.font.Font("freesansbold.ttf", 64)
 
+# setting up a thread to check for collision between the bird and the pipes
+coll_thread = threading.Thread(target=check_collision)
+coll_thread.start()
 # main loop
 while running:
     # setting up the background
@@ -102,9 +109,10 @@ while running:
     # placing the pipe if there is less than 3 pipes on the screen
     if len(pipes_on_screen) < 1:
         pipes_on_screen.append([pipe_x, pipe_y])
-    # placing the pipes
+    # placing the pipes and the reversed  pipes
     for i in range(3):
         screen.blit(pipe, (pipe_x[i], pipe_y[i]))
+        screen.blit(pipe, (pipe_x[i], pipe_y[i]-pipe.get_height()-200))
     # pipe boundary checking
     for i in range(3):
         if pipe_x[i] <= -500:
@@ -114,18 +122,17 @@ while running:
 
     # checking for collision between the bird and the pipes, temporary solution...
     for i in range(3):
-        #print(bird_y, pipe_y[i])
-        if pipe_y[i] < bird_y:
-            #print("Bird is bellow the pipe")
-            if bird_x-50 > pipe_x[i]:
+        if bird_x+bird.get_width() > pipe_x[i] and bird_x < pipe_x[i]+pipe.get_width():
+            #print("Bird is in the same x position as the pipe"+ str(i))
+            #print(bird_y, pipe_y[i])
+            if bird_y > pipe_y[i]:
                 game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
                 screen.blit(game_over_text, (300, 250))
-                checking = True
-                # setting the speeds to 0
+                # stopping everything
                 bird_y_change = 0
                 pipe_y_change = 0
-
-                # waiting for what player wants to do
+                # waiting for the player to decide what to do next
+                checking = True
                 while checking:
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
@@ -136,7 +143,61 @@ while running:
                                 reset()
                                 checking = False
                     pygame.display.update()
-            pygame.display.update()
-        pygame.display.update()
+                
 
+
+
+
+
+
+
+
+        # FAILED ATTEMPT
+        #print(bird_y, pipe_y[i])
+        #print(bird_x+bird.get_height(), pipe_x[i])
+        #if pipe_y[i] < bird_y and bird_x-100 > pipe_x[i] and pipe_x[i] < bird_x+bird.get_height():
+        #    game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
+        #    screen.blit(game_over_text, (300, 250))
+        #    checking = True
+        #    # setting the speeds to 0
+        #    bird_y_change = 0
+        #    pipe_y_change = 0
+        #    # waiting for what player wants to do
+        #    while checking:
+        #        for event in pygame.event.get():
+        #            if event.type == pygame.QUIT: 
+        #                running = False
+        #                checking = False
+        #            if event.type == pygame.KEYDOWN:
+        #                if event.key == pygame.K_r:
+        #                    reset()
+        #                    checking = False
+        #        pygame.display.update()
+        #    pygame.display.update()
+            
+            #print("hit")
+            #print("Bird is bellow the pipe")
+            #if bird_x > pipe_x[i]:
+            #    game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
+            #    screen.blit(game_over_text, (300, 250))
+            #    checking = True
+                # setting the speeds to 0
+            #    bird_y_change = 0
+            #    pipe_y_change = 0
+
+                # waiting for what player wants to do
+            #    while checking:
+            #        for event in pygame.event.get():
+            #            if event.type == pygame.QUIT:
+            #                running = False
+            #                checking = False
+            #            if event.type == pygame.KEYDOWN:
+            #                if event.key == pygame.K_r:
+            #                    reset()
+            #                    checking = False
+            #        pygame.display.update()
+            #pygame.display.update()
+    pygame.display.update()
+
+# quitting the game
 pygame.quit()
