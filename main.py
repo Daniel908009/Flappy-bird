@@ -8,8 +8,10 @@ def reset():
     global bird_y, bird_y_change, pipe_x, pipe_y, score
     bird_y = 300
     bird_y_change = 0
-    pipe_x = 800
-    pipe_y = random.choice(all_pipes_height)
+    for i in range(3):
+        pipe_x[i] = 800 + i * 400
+    for i in range(3):
+        pipe_y[i] = random.choice(all_pipes_height)
     score = 0
     print("Game Reseted!")
 
@@ -38,8 +40,12 @@ bird_y = 300
 bird_y_change = 0
 # setting up the pipe
 pipe = pygame.image.load("assets/pipe.png")
-pipe_x = 800
-pipe_y = random.choice(all_pipes_height)
+pipe_x = []
+for i in range(3):
+    pipe_x.append(800 + i * 400)
+pipe_y = []
+for i in range(3):
+    pipe_y.append(random.choice(all_pipes_height))
 pipe_y_change = 0
 # setting up the ground
 #ground = pygame.image.load("assets/ground.png")
@@ -91,38 +97,46 @@ while running:
     elif bird_y >= 500:
         bird_y = 500
     # moving the pipes closer to the bird
-    pipe_x += -1
-    # placing the pipe
-    screen.blit(pipe, (pipe_x, pipe_y))
+    for i in range(3):
+        pipe_x[i] += -1
+    # placing the pipe if there is less than 3 pipes on the screen
+    if len(pipes_on_screen) < 1:
+        pipes_on_screen.append([pipe_x, pipe_y])
+    # placing the pipes
+    for i in range(3):
+        screen.blit(pipe, (pipe_x[i], pipe_y[i]))
     # pipe boundary checking
-    if pipe_x <= -500:
-        score += 1
-        pipe_x = 800
-        pipe_y = random.choice(all_pipes_height)
+    for i in range(3):
+        if pipe_x[i] <= -500:
+            pipe_x[i] = 800
+            pipe_y[i] = random.choice(all_pipes_height)
+            score += 1
 
-    # checking for collision between the bird and the pipe, temporary solution...
-    #if bird_x >= pipe_x and bird_x <= pipe_x+100 and bird_y >= pipe_y:
-    if bird_x >= pipe_x and bird_y <= pipe_y:
-        if bird_y <= pipe_y + 500 or bird_y + 64 >= pipe_y + 600:
-            game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
-            screen.blit(game_over_text, (300, 250))
-            end_screen = True
-            # stoping all moving objects
-            bird_y_change = 0
-            pipe_x = 0
-            while end_screen:
-                # event checking
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        end_screen = False
-                        running = False
-                    # checking for the reset key
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_r:
-                            end_screen = False
-                            reset()                          
-                pygame.display.update()
-    print("main loop running...")
-    pygame.display.update()
+    # checking for collision between the bird and the pipes, temporary solution...
+    for i in range(3):
+        #print(bird_y, pipe_y[i])
+        if pipe_y[i] < bird_y:
+            #print("Bird is bellow the pipe")
+            if bird_x-50 > pipe_x[i]:
+                game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
+                screen.blit(game_over_text, (300, 250))
+                checking = True
+                # setting the speeds to 0
+                bird_y_change = 0
+                pipe_y_change = 0
+
+                # waiting for what player wants to do
+                while checking:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            running = False
+                            checking = False
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_r:
+                                reset()
+                                checking = False
+                    pygame.display.update()
+            pygame.display.update()
+        pygame.display.update()
 
 pygame.quit()
