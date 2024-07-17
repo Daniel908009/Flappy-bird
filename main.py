@@ -7,9 +7,10 @@ import tkinter
 
 # function to reset the game
 def reset():
-    global bird_y, bird_y_change, pipe_x, pipe_y, score
+    global bird_y, bird_y_change, pipe_x, pipe_y, score, colision
     bird_y = 300
     bird_y_change = 0
+    colision = False
     # clearing the pipes list
     pipe_x.clear()
     pipe_y.clear()
@@ -18,16 +19,18 @@ def reset():
         pipe_x.append(800 + i * 400) 
         pipe_y.append(random.choice(all_pipes_height))
     score = 0
-    #print("Game Reseted!")
 
 # function to check for collision between the bird and the pipes
 def check_collision():
     global running, bird_x, bird_y, pipe_x, pipe_y, bird_y_change, colision
     while running:
+        while settings:
+            #print("settings")
+            pass
         time.sleep(0.01)
         for i in range(numb_of_pipes):
             if bird_x+bird.get_width() > pipe_x[i] and bird_x < pipe_x[i]+pipe.get_width():
-                if bird_y > pipe_y[i]:
+                if bird_y+bird.get_height() > pipe_y[i]:
                     colision = True
                     bird_y_change = 0               
         for i in range(numb_of_pipes):
@@ -37,19 +40,12 @@ def check_collision():
                     bird_y_change = 0
 
 # function to apply the settings
-def apply(pipes, resizability, window):
+def apply(pipes, window):
     global numb_of_pipes, settings
     if int(pipes) < 1 or int(pipes) > 3:
-        #print("Invalid Number of Pipes!")
         return
     else:
         numb_of_pipes = int(pipes)
-    if resizability:
-        pygame.display.set_mode((800, 600), pygame.RESIZABLE)
-    else:
-        pygame.display.set_mode((800, 600))
-    #print("Number of Pipes:", numb_of_pipes)
-    #print("Resizability:", resizability)
     settings = False
     window.destroy()
     reset()
@@ -59,9 +55,9 @@ def settings_window():
     # window setup
     window = tkinter.Tk()
     window.title("Settings")
-    window.geometry("750x400")
+    window.geometry("750x200")
     window.resizable(False, False)
-    #window.iconbitmap("assets/icon.png")
+    #window.iconbitmap("assets/icon.ico")
     # creating the main label
     label = tkinter.Label(window, text="Settings", font=("Arial", 32))
     label.pack()
@@ -77,15 +73,8 @@ def settings_window():
     # creating a label for instructions
     instructions_label = tkinter.Label(frame, text="Enter a number between 1 and 3", font=("Arial", 16))
     instructions_label.grid(row=0, column=2)
-    # creating a label for the resizability of the window
-    resizability_label = tkinter.Label(frame, text="Resizability", font=("Arial", 16))
-    resizability_label.grid(row=1, column=0)
-    # creating a checkbutton for the resizability of the window
-    resizability_var = tkinter.IntVar()
-    resizability_checkbutton = tkinter.Checkbutton(frame, variable=resizability_var, font=("Arial", 16))
-    resizability_checkbutton.grid(row=1, column=1)
     # creating the apply button
-    apply_button = tkinter.Button(window, text="Apply", font=("Arial", 16), command=lambda: apply(pipes_entry.get(), resizability_var.get(), window))
+    apply_button = tkinter.Button(window, text="Apply", font=("Arial", 16), command=lambda: apply(pipes_entry.get(), window))
     apply_button.pack(side="bottom")
     window.mainloop()
 
@@ -164,6 +153,8 @@ while running:
                     settings = True
                     settings_window()
         pygame.display.update()
+    if settings:
+        settings = False
 
     # setting up the background
     screen.blit(background, (0, 0))
@@ -176,16 +167,14 @@ while running:
             if event.key == pygame.K_r:
                 reset()
             else:
-                bird_y_change = -1
+                bird_y_change = -2
         if event.type == pygame.KEYUP:
-            bird_y_change = 1
+            bird_y_change = 2
         # checking for the settings button
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.pos[0] >= 750-settings_button.get_width() and event.pos[0] <= 750 and event.pos[1] >= 0 and event.pos[1] <= settings_button.get_height():
-                #print("Settings Button Clicked!")
                 settings = True
                 settings_window()
-            pass
 
     # placing the bird
     screen.blit(bird, (bird_x, bird_y))
@@ -195,7 +184,7 @@ while running:
     if bird_y <= 0:
         bird_y = 0
     elif bird_y >= 500:
-        bird_y = 500
+        colision = True
     # moving the pipes closer to the bird
     for i in range(numb_of_pipes):
         pipe_x[i] += -1
