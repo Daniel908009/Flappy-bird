@@ -2,6 +2,8 @@
 import pygame
 import random
 import threading
+import time
+import tkinter
 
 # function to reset the game
 def reset():
@@ -17,8 +19,53 @@ def reset():
 
 # function to check for collision between the bird and the pipes
 def check_collision():
+    global running, bird_x, bird_y, pipe_x, pipe_y, bird_y_change, colision
     while running:
-        print("Checking for collisions")
+        time.sleep(0.01)
+        for i in range(3):
+            if bird_x+bird.get_width() > pipe_x[i] and bird_x < pipe_x[i]+pipe.get_width():
+            #print("Bird is in the same x position as the pipe"+ str(i))
+            #print(bird_y, pipe_y[i])
+                if bird_y > pipe_y[i]:
+                    colision = True
+                    #game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
+                    #screen.blit(game_over_text, (300, 250))
+                    # stopping everything
+                    bird_y_change = 0               
+                    # waiting for the player to decide what to do next
+                    #checking = True
+                    #while checking:
+                     #   print("checking")
+                      #  for event in pygame.event.get():
+                       #     if event.type == pygame.QUIT:
+                        #        running = False
+                         #
+                         #       colision = False
+                         #   if event.type == pygame.KEYDOWN:
+                          #      if event.key == pygame.K_r:
+                           #         print("Game Reseting!")
+                            #        reset()
+                             #       print("Game Reseted!")
+                              #      colision = False
+                               #     checking = False
+                        #pygame.display.update()
+        # checking for collision between the bird and the reversed pipes
+        #pipe_x[i], pipe_y[i]-pipe.get_height()-200
+        for i in range(3):
+            if bird_x+bird.get_width() > pipe_x[i] and bird_x < pipe_x[i]+pipe.get_width():
+                #print(pipe_y[i]+pipe.get_height()-200, bird_y)
+                if bird_y+5 < pipe_y[i]-200:
+                    #print(bird_y, pipe_y[i]-200)
+                    colision = True
+                    bird_y_change = 0
+
+# function to open the settings window
+def settings_window():
+    # window setup
+    window = tkinter.Tk()
+    window.title("Settings")
+    window.geometry("800x600")
+    window.mainloop()
 
 # variables
 running = True
@@ -36,9 +83,11 @@ pygame.display.set_caption("Flappy Bird")
 icon = pygame.image.load("assets/icon.png")
 pygame.display.set_icon(icon)
 # setting up the background
-#background = pygame.image.load("assets/background.png")
+background = pygame.image.load("assets/background.jpg")
+# transforming the background to fit the screen
+background = pygame.transform.scale(background, (800, 600))
 # setting up the bird
-bird = pygame.image.load("assets/bird.png")
+bird = pygame.image.load("assets/new_bird.png")
 bird_x = 50
 bird_y = 300
 bird_y_change = 0
@@ -50,12 +99,6 @@ for i in range(3):
 pipe_y = []
 for i in range(3):
     pipe_y.append(random.choice(all_pipes_height))
-pipe_y_change = 0
-# setting up the ground
-#ground = pygame.image.load("assets/ground.png")
-ground_x = 0
-ground_y = 500
-ground_x_change = -1
 # setting up the score
 score = 0
 font = pygame.font.Font("freesansbold.ttf", 32)
@@ -63,28 +106,49 @@ text_x = 10
 text_y = 10
 # setting up the game over
 game_over_font = pygame.font.Font("freesansbold.ttf", 64)
+colision = False
+
+# settings window setup
+settings = False
+#settings_button = pygame.image.load("assets/settings_button.png")
 
 # setting up a thread to check for collision between the bird and the pipes
 coll_thread = threading.Thread(target=check_collision)
 coll_thread.start()
+
 # main loop
 while running:
+    # checking for collisions
+    while colision:
+        pygame.display.update()
+        time.sleep(0.1)
+        #print("colision")
+        game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
+        score_text = font.render("Score: " + str(score), True, (0, 0, 0))
+        title_text = title_font.render("Flappy Bird", True, (0, 0, 0))
+        screen.blit(game_over_text, (300, 250))
+        screen.blit(score_text, (500, 10))
+        screen.blit(title_text, (text_x, text_y))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                colision = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    reset()
+                    colision = False
+        pygame.display.update()
+
     # setting up the background
-    screen.fill((255, 255, 255))
-
-    # displaying the main title
-    title = font.render("Flappy Bird", True, (0, 0, 0))
-    screen.blit(title, (10, 10))
-
-    # displaying the score on the center of the screen
-    score_text = font.render("Score: " + str(score), True, (0, 0, 0))
-    screen.blit(score_text, (350, 10))
-
+    screen.blit(background, (0, 0))
 
     # event checking
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+            # destroying the settings window if it is open
+            #if settings:
+                #   window.destroy()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 reset()
@@ -93,6 +157,13 @@ while running:
                 bird_y_change = -1
         if event.type == pygame.KEYUP:
             bird_y_change = 1
+        # checking for the settings button
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            #if event.pos[0] >= 750-settings_button.get_width() and event.pos[0] <= 750 and event.pos[1] >= 0 and event.pos[1] <= settings_button.get_height():
+             #   print("Settings Button Clicked!")
+              #  settings = True
+                #settings_window()
+            pass
 
     # placing the bird
     screen.blit(bird, (bird_x, bird_y))
@@ -120,83 +191,18 @@ while running:
             pipe_y[i] = random.choice(all_pipes_height)
             score += 1
 
-    # checking for collision between the bird and the pipes, temporary solution...
-    for i in range(3):
-        if bird_x+bird.get_width() > pipe_x[i] and bird_x < pipe_x[i]+pipe.get_width():
-            #print("Bird is in the same x position as the pipe"+ str(i))
-            #print(bird_y, pipe_y[i])
-            if bird_y > pipe_y[i]:
-                game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
-                screen.blit(game_over_text, (300, 250))
-                # stopping everything
-                bird_y_change = 0
-                pipe_y_change = 0
-                # waiting for the player to decide what to do next
-                checking = True
-                while checking:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            running = False
-                            checking = False
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_r:
-                                reset()
-                                checking = False
-                    pygame.display.update()
+    # placing the score
+    score_text = font.render("Score: " + str(score), True, (0, 0, 0))
+    screen.blit(score_text, (500, 10))
+
+    # placing the title of the game
+    title_font = pygame.font.Font("freesansbold.ttf", 64)
+    title_text = title_font.render("Flappy Bird", True, (0, 0, 0))
+    screen.blit(title_text, (text_x, text_y))
+
+    # placing a button in the top right corner to open the settings window
+    #screen.blit(settings_button, (750-settings_button.get_width(), 0))
                 
-
-
-
-
-
-
-
-
-        # FAILED ATTEMPT
-        #print(bird_y, pipe_y[i])
-        #print(bird_x+bird.get_height(), pipe_x[i])
-        #if pipe_y[i] < bird_y and bird_x-100 > pipe_x[i] and pipe_x[i] < bird_x+bird.get_height():
-        #    game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
-        #    screen.blit(game_over_text, (300, 250))
-        #    checking = True
-        #    # setting the speeds to 0
-        #    bird_y_change = 0
-        #    pipe_y_change = 0
-        #    # waiting for what player wants to do
-        #    while checking:
-        #        for event in pygame.event.get():
-        #            if event.type == pygame.QUIT: 
-        #                running = False
-        #                checking = False
-        #            if event.type == pygame.KEYDOWN:
-        #                if event.key == pygame.K_r:
-        #                    reset()
-        #                    checking = False
-        #        pygame.display.update()
-        #    pygame.display.update()
-            
-            #print("hit")
-            #print("Bird is bellow the pipe")
-            #if bird_x > pipe_x[i]:
-            #    game_over_text = game_over_font.render("Game Over", True, (0, 0, 0))
-            #    screen.blit(game_over_text, (300, 250))
-            #    checking = True
-                # setting the speeds to 0
-            #    bird_y_change = 0
-            #    pipe_y_change = 0
-
-                # waiting for what player wants to do
-            #    while checking:
-            #        for event in pygame.event.get():
-            #            if event.type == pygame.QUIT:
-            #                running = False
-            #                checking = False
-            #            if event.type == pygame.KEYDOWN:
-            #                if event.key == pygame.K_r:
-            #                    reset()
-            #                    checking = False
-            #        pygame.display.update()
-            #pygame.display.update()
     pygame.display.update()
 
 # quitting the game
