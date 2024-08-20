@@ -134,6 +134,7 @@ screen = pygame.display.set_mode((800, 600))
 # setting up the title and icon
 pygame.display.set_caption(os.path.join(base_path,"Flappy Bird"))
 icon = pygame.image.load(os.path.join(base_path, "assets/icon.png"))
+pygame.display.set_caption("Flappy Bird")
 pygame.display.set_icon(icon)
 # setting up the background
 background = pygame.image.load(os.path.join(base_path, "assets/background.jpg"))
