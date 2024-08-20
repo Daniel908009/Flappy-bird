@@ -4,6 +4,12 @@ import random
 import threading
 import time
 import tkinter
+import os
+import sys
+if hasattr(sys, '_MEIPASS'):
+    base_path = sys._MEIPASS
+else:
+    base_path = os.path.abspath(".")
 
 # function to reset the game
 def reset():
@@ -58,7 +64,7 @@ def settings_window():
     window.title("Settings")
     window.geometry("750x200")
     window.resizable(False, False)
-    window.iconbitmap("assets/setting.ico")
+    window.iconbitmap(os.path.join(base_path, "assets/setting.ico"))
     # creating the main label
     label = tkinter.Label(window, text="Settings", font=("Arial", 32))
     label.pack()
@@ -126,21 +132,21 @@ pygame.init()
 # creating and setting up the screen
 screen = pygame.display.set_mode((800, 600))
 # setting up the title and icon
-pygame.display.set_caption("Flappy Bird")
-icon = pygame.image.load("assets/icon.png")
+pygame.display.set_caption(os.path.join(base_path,"Flappy Bird"))
+icon = pygame.image.load(os.path.join(base_path, "assets/icon.png"))
 pygame.display.set_icon(icon)
 # setting up the background
-background = pygame.image.load("assets/background.jpg")
+background = pygame.image.load(os.path.join(base_path, "assets/background.jpg"))
 # transforming the background to fit the screen
 background = pygame.transform.scale(background, (800, 600))
 # setting up the bird
-bird = pygame.image.load("assets/new_bird.png")
+bird = pygame.image.load(os.path.join(base_path, "assets/new_bird.png"))
 bird_x = 50
 bird_y = 300
 bird_y_change = 0
 bird_speed = 1.5
 # setting up the pipes
-pipe = pygame.image.load("assets/new_pipe.png")
+pipe = pygame.image.load(os.path.join(base_path, "assets/new_pipe.png"))
 pipe_x = []
 pipe_y = []
 numb_of_pipes = 3
@@ -160,7 +166,7 @@ colision = False
 
 # settings window setup
 settings = False
-settings_button = pygame.image.load("assets/setting.png")
+settings_button = pygame.image.load(os.path.join(base_path, "assets/setting.png"))
 
 # setting up a thread to check for collision between the bird and the pipes
 coll_thread = threading.Thread(target=check_collision)
